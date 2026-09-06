@@ -1,0 +1,7 @@
+<section id="simulation" class="solar-card simulation-player p-5 sm:p-6">
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-sm font-bold text-slate-800">Timeline Simulare</h2><p class="mt-0.5 text-[10px] text-slate-400">Trage cursorul pentru a simula orice moment al zilei</p></div><button type="button" @click="reset" class="text-[11px] font-semibold text-violet-600">Simulare nouă ↻</button></div>
+    <div class="flex flex-col gap-5 xl:flex-row xl:items-center">
+        <div class="flex shrink-0 items-center gap-2"><button type="button" @click="running ? pause() : play()" class="player-main" x-text="running ? 'Ⅱ' : '▶'"></button><button type="button" @click="stop" class="player-stop">■</button><select x-model.number="speed" class="speed-select"><option value="0.5">0.5x</option><option value="1">1x</option><option value="2">2x</option><option value="5">5x</option><option value="10">10x</option></select></div>
+        <div class="min-w-0 flex-1"><div class="relative px-2"><div class="timeline-bubble" :style="`left:calc(${timeMinutes/1440*100}% - 20px)`" x-text="clockTime"></div><input type="range" min="0" max="1439" step="5" :value="timeMinutes" :style="`--timeline:${timeMinutes/1440*100}%`" @input="setTimeline($event.target.value)" class="timeline-range"><div class="mt-2 flex justify-between text-[9px] font-medium text-slate-400"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></div>
+    </div>
+</section>
