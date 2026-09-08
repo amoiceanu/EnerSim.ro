@@ -8,6 +8,8 @@ Alpine.data('energySimulator', (initial) => {
     // Chart.js instances contain circular references and must stay outside
     // Alpine's reactive proxy; proxying one can overflow the call stack.
     let powerChart = null;
+    const today = new Date();
+    const analysisTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30, 0, 0);
 
     return {
     initial,
@@ -22,8 +24,8 @@ Alpine.data('energySimulator', (initial) => {
     timer: null,
     scrubTimer: null,
     chartPeriod: 'Zi',
-    time: new Date('2026-08-26T14:30:00'),
-    initialTime: new Date('2026-08-26T14:30:00'),
+    time: new Date(analysisTime),
+    initialTime: new Date(analysisTime),
     weather: 'clear',
     randomWeather: false,
     gridMode: 'prosumer',
@@ -33,20 +35,36 @@ Alpine.data('energySimulator', (initial) => {
     panels: initial.panels,
     panelPresets: initial.panel_presets || [],
     panelQuantity: 1,
+    panelPowerMin: null,
+    panelPowerMax: null,
     panelBusy: false,
     consumers: initial.consumers,
     consumerPresets: initial.consumer_presets || [],
     consumerSearch: '',
+    consumerQuantityBusy: {},
     draggedConsumerKey: null,
     consumerDropActive: false,
     consumerAddingKey: null,
     batteryPresets: initial.battery_presets || [],
     batteryBusy: false,
+    batterySearch: '',
+    batteryCapacityMin: '',
+    batteryCapacityMax: '',
+    batteryPowerMin: '',
+    batteryChemistry: 'all',
+    batteryVoltage: 'all',
+    batteryStock: 'all',
     inverterPresets: initial.inverter_presets || [],
     inverterBusy: false,
-    simulationYear: 2026,
-    simulationMonth: 8,
-    simulationDay: 26,
+    inverterSearch: '',
+    inverterPowerMin: '',
+    inverterPowerMax: '',
+    inverterPhase: 'all',
+    inverterStock: 'all',
+    inverterCompatibility: 'all',
+    simulationYear: today.getFullYear(),
+    simulationMonth: today.getMonth() + 1,
+    simulationDay: today.getDate(),
     simulationHour: 14,
     simulationTimer: null,
     tickQueued: false,
@@ -83,6 +101,49 @@ Alpine.data('energySimulator', (initial) => {
         return this.panels.filter((panel) => panel.enabled).reduce((sum, panel) => sum + Number(panel.power_w), 0);
     },
     get enabledPanelCount() { return this.panels.filter((panel) => panel.enabled).length; },
+    get panelPowerMinimum() {
+        const powers = this.panelPresets.map((panel) => Number(panel.power_w)).filter(Number.isFinite);
+        return powers.length ? Math.min(...powers) : 0;
+    },
+    get panelPowerMaximum() {
+        const powers = this.panelPresets.map((panel) => Number(panel.power_w)).filter(Number.isFinite);
+        return powers.length ? Math.max(...powers) : 0;
+    },
+    get filteredPanelPresets() {
+        const minimum = this.panelPowerMin ?? this.panelPowerMinimum;
+        const maximum = this.panelPowerMax ?? this.panelPowerMaximum;
+        return this.panelPresets.filter((panel) => Number(panel.power_w) >= minimum && Number(panel.power_w) <= maximum);
+    },
+    get filteredInverterPresets() {
+        const search = this.inverterSearch.trim().toLocaleLowerCase('ro-RO');
+        const minPower = Number(this.inverterPowerMin || 0);
+        const maxPower = this.inverterPowerMax === '' ? Infinity : Number(this.inverterPowerMax);
+        return this.inverterPresets.filter((inverter) => {
+            const power = Number(inverter.nominal_power_w);
+            const searchable = `${inverter.name} ${inverter.model} ${inverter.brand}`.toLocaleLowerCase('ro-RO');
+            const compatible = this.installedW <= Number(inverter.max_pv_power_w);
+            return (!search || searchable.includes(search))
+                && power >= minPower && power <= maxPower
+                && (this.inverterPhase === 'all' || Number(inverter.phases) === Number(this.inverterPhase))
+                && (this.inverterStock === 'all' || inverter.stock_status === this.inverterStock)
+                && (this.inverterCompatibility === 'all' || (this.inverterCompatibility === 'compatible' && compatible) || (this.inverterCompatibility === 'overload' && !compatible));
+        });
+    },
+    get filteredBatteryPresets() {
+        const search = this.batterySearch.trim().toLocaleLowerCase('ro-RO');
+        const capacityMin = Number(this.batteryCapacityMin || 0);
+        const capacityMax = this.batteryCapacityMax === '' ? Infinity : Number(this.batteryCapacityMax);
+        const powerMin = Number(this.batteryPowerMin || 0);
+        return this.batteryPresets.filter((battery) => {
+            const searchable = `${battery.name} ${battery.brand} ${battery.chemistry}`.toLocaleLowerCase('ro-RO');
+            return (!search || searchable.includes(search))
+                && Number(battery.capacity_kwh) >= capacityMin && Number(battery.capacity_kwh) <= capacityMax
+                && Number(battery.power_w) >= powerMin
+                && (this.batteryChemistry === 'all' || battery.chemistry === this.batteryChemistry)
+                && (this.batteryVoltage === 'all' || Number(battery.voltage) === Number(this.batteryVoltage))
+                && (this.batteryStock === 'all' || battery.stock_status === this.batteryStock);
+        });
+    },
     get panelGroups() {
         const groups = new Map();
 
@@ -127,6 +188,12 @@ Alpine.data('energySimulator', (initial) => {
     },
     get formattedDateTime() { return this.time.toLocaleString('ro-RO', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(' la ', ' • '); },
     get shortDate() { return this.time.toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' }); },
+    get analysisDate() {
+        const year = this.time.getFullYear();
+        const month = String(this.time.getMonth() + 1).padStart(2, '0');
+        const day = String(this.time.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
     get clockTime() { return this.time.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }); },
     get timeMinutes() { return this.time.getHours() * 60 + this.time.getMinutes(); },
     get tickLabel() { return `${Math.max(1, Math.round(Number(this.speed) * 5))} minute`; },
@@ -170,6 +237,35 @@ Alpine.data('energySimulator', (initial) => {
     get simulationComparisonMax() { return Math.max(1, Number(this.result.solar_w || 0), Number(this.result.load_w || 0)); },
     get simulationProductionPercent() { return Math.round(Number(this.result.solar_w || 0) / this.simulationComparisonMax * 100); },
     get simulationConsumptionPercent() { return Math.round(Number(this.result.load_w || 0) / this.simulationComparisonMax * 100); },
+    get simulationSuggestedPanel() { return this.panels.find((panel) => panel.enabled) || null; },
+    get simulationAdditionalPanelCount() {
+        if (this.simulationBalanceW >= 0 || !this.enabledPanelCount || Number(this.result.solar_w || 0) <= 0) return 0;
+        const outputPerPanel = Number(this.result.solar_w || 0) / this.enabledPanelCount;
+        return outputPerPanel > 0 ? Math.ceil(Math.abs(this.simulationBalanceW) / outputPerPanel) : 0;
+    },
+    get simulationRecommendedBatteryCapacityKwh() {
+        return Math.ceil(Math.abs(Math.min(0, this.simulationBalanceW)) * 2 / 100) / 10;
+    },
+    get simulationBatteryRecommendationNeeded() {
+        if (this.simulationBalanceW >= 0) return false;
+        const battery = this.initial.battery;
+        if (!battery?.enabled) return true;
+        return Number(battery.capacity_kwh || 0) < this.simulationRecommendedBatteryCapacityKwh
+            || Number(battery.max_discharge_power_w || 0) < Math.abs(this.simulationBalanceW);
+    },
+    get simulationRecommendedBatteries() {
+        if (!this.simulationBatteryRecommendationNeeded) return [];
+        const deficit = Math.abs(this.simulationBalanceW);
+        const capacity = this.simulationRecommendedBatteryCapacityKwh;
+        return this.batteryPresets
+            .map((battery) => ({
+                ...battery,
+                recommendedQuantity: Math.max(1, Math.ceil(capacity / Math.max(.1, Number(battery.capacity_kwh))), Math.ceil(deficit / Math.max(1, Number(battery.power_w)))),
+            }))
+            .filter((battery) => battery.recommendedQuantity <= 2)
+            .sort((first, second) => first.recommendedQuantity - second.recommendedQuantity || Number(first.capacity_kwh) - Number(second.capacity_kwh))
+            .slice(0, 2);
+    },
     get simulationVerdictTone() { return this.simulationBalanceW >= 0 ? 'is-positive' : 'is-negative'; },
     get simulationVerdictIcon() { return this.simulationBalanceW >= 0 ? '✓' : '!'; },
     get simulationVerdictLabel() { return this.simulationBalanceW >= 0 ? 'Producția acoperă consumul' : 'Producția nu acoperă consumul'; },
@@ -340,6 +436,8 @@ Alpine.data('energySimulator', (initial) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     init() {
+        this.panelPowerMin = this.panelPowerMinimum;
+        this.panelPowerMax = this.panelPowerMaximum;
         const requestedPage = window.location.hash.slice(1);
         if (['dashboard','panels','inverters','consumers','battery','simulation','reports','weather','system','feed','guide','about'].includes(requestedPage)) this.activeNav = requestedPage;
         window.addEventListener('hashchange', () => {
@@ -356,6 +454,23 @@ Alpine.data('energySimulator', (initial) => {
             this.initChart();
             this.tick(this.activeNav !== 'simulation');
         });
+    },
+    clearInverterFilters() {
+        this.inverterSearch = '';
+        this.inverterPowerMin = '';
+        this.inverterPowerMax = '';
+        this.inverterPhase = 'all';
+        this.inverterStock = 'all';
+        this.inverterCompatibility = 'all';
+    },
+    clearBatteryFilters() {
+        this.batterySearch = '';
+        this.batteryCapacityMin = '';
+        this.batteryCapacityMax = '';
+        this.batteryPowerMin = '';
+        this.batteryChemistry = 'all';
+        this.batteryVoltage = 'all';
+        this.batteryStock = 'all';
     },
     initChart() {
         if (!this.$refs.powerChart) return;
@@ -444,6 +559,18 @@ Alpine.data('energySimulator', (initial) => {
         this.rebuildChart();
         this.tick();
     },
+    setAnalysisDate(value) {
+        if (!value) return;
+        const selected = new Date(`${value}T14:00:00`);
+        if (Number.isNaN(selected.getTime())) return;
+        this.time = selected;
+        this.initialTime = new Date(selected);
+        this.simulationYear = selected.getFullYear();
+        this.simulationMonth = selected.getMonth() + 1;
+        this.simulationDay = selected.getDate();
+        this.simulationHour = selected.getHours();
+        this.tick();
+    },
     setTimeline(minutes) {
         const value = Number(minutes);
         this.time.setHours(Math.floor(value / 60), value % 60, 0, 0);
@@ -479,7 +606,7 @@ Alpine.data('energySimulator', (initial) => {
         }
         this.busy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/simulation/tick`, {
+            const response = await fetch(`/projects/${initial.project_token}/simulation/tick`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
                 body: JSON.stringify({ time: this.time.toISOString(), soc: this.soc, weather: this.weather, random_weather: this.randomWeather, grid_mode: this.gridMode, grid_available: this.gridAvailable, active_consumers: this.activeConsumers, tick_minutes: Math.max(1, Math.round(Number(this.speed) * 5)) }),
@@ -514,7 +641,7 @@ Alpine.data('energySimulator', (initial) => {
         const previous = consumer.enabled;
         consumer.enabled = !previous;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/consumers/${consumer.id}/toggle`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' } });
+            const response = await fetch(`/projects/${initial.project_token}/consumers/${consumer.id}/toggle`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' } });
             if (!response.ok) throw new Error('Consumatorul nu a putut fi actualizat');
             const data = await response.json();
             consumer.enabled = data.enabled;
@@ -545,7 +672,7 @@ Alpine.data('energySimulator', (initial) => {
         if (this.consumerAddingKey) return;
         this.consumerAddingKey = preset.key;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/consumers`, {
+            const response = await fetch(`/projects/${initial.project_token}/consumers`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
                 body: JSON.stringify({ preset: preset.key }),
@@ -567,11 +694,11 @@ Alpine.data('energySimulator', (initial) => {
     async updateConsumerQuantity(consumer, quantity) {
         const previous = Number(consumer.quantity || 1);
         const next = Math.max(1, Math.min(100, Number(quantity)));
-        if (next === previous || consumer.quantityBusy) return;
+        if (next === previous || this.consumerQuantityBusy[consumer.id]) return;
         consumer.quantity = next;
-        consumer.quantityBusy = true;
+        this.consumerQuantityBusy = { ...this.consumerQuantityBusy, [consumer.id]: true };
         try {
-            const response = await fetch(`/projects/${initial.project_id}/consumers/${consumer.id}/quantity`, {
+            const response = await fetch(`/projects/${initial.project_token}/consumers/${consumer.id}/quantity`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
                 body: JSON.stringify({ quantity: next }),
@@ -584,13 +711,13 @@ Alpine.data('energySimulator', (initial) => {
             consumer.quantity = previous;
             this.logs.unshift({ level: 'WARNING', message: error.message });
         } finally {
-            consumer.quantityBusy = false;
+            this.consumerQuantityBusy = { ...this.consumerQuantityBusy, [consumer.id]: false };
         }
     },
     async removeConsumer(consumer) {
         if (!window.confirm(`Elimini ${consumer.name} din proiect?`)) return;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/consumers/${consumer.id}`, {
+            const response = await fetch(`/projects/${initial.project_token}/consumers/${consumer.id}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
             });
@@ -606,7 +733,7 @@ Alpine.data('energySimulator', (initial) => {
         if (this.batteryBusy) return;
         this.batteryBusy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/battery`, {
+            const response = await fetch(`/projects/${initial.project_token}/battery`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
                 body: JSON.stringify({ preset: preset.key }),
@@ -616,18 +743,28 @@ Alpine.data('energySimulator', (initial) => {
             this.soc = Number(this.initial.battery.current_soc);
             this.result.soc = this.soc;
             this.logs.unshift({ level: 'INFO', message: `Baterie instalată · ${this.initial.battery.name}` });
-            await this.tick();
+            await this.recalculateSelectedSimulation();
         } catch (error) {
             this.logs.unshift({ level: 'WARNING', message: error.message });
         } finally {
             this.batteryBusy = false;
         }
     },
+    async recalculateSelectedSimulation() {
+        this.time = new Date(this.simulationYear, this.simulationMonth - 1, this.simulationDay, this.simulationHour, 0, 0, 0);
+        this.soc = Number(this.initial.battery.current_soc);
+        clearTimeout(this.simulationTimer);
+
+        // A slider update may still be in flight; wait for it, then calculate with the newly selected storage.
+        while (this.busy) await new Promise((resolve) => setTimeout(resolve, 25));
+        await this.tick(false);
+        this.rebuildChart();
+    },
     async removeBattery() {
         if (this.batteryBusy || !window.confirm('Elimini bateria din sistem?')) return;
         this.batteryBusy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/battery`, {
+            const response = await fetch(`/projects/${initial.project_token}/battery`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
             });
@@ -646,7 +783,7 @@ Alpine.data('energySimulator', (initial) => {
         if (this.inverterBusy) return;
         this.inverterBusy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/inverter`, {
+            const response = await fetch(`/projects/${initial.project_token}/inverter`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
                 body: JSON.stringify({ preset: preset.key }),
@@ -674,7 +811,7 @@ Alpine.data('energySimulator', (initial) => {
         const previous = panel.enabled;
         panel.enabled = !previous;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/panels/${panel.id}/toggle`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' } });
+            const response = await fetch(`/projects/${initial.project_token}/panels/${panel.id}/toggle`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' } });
             if (!response.ok) throw new Error('Panoul nu a putut fi actualizat');
             const data = await response.json();
             panel.enabled = data.enabled;
@@ -692,7 +829,7 @@ Alpine.data('energySimulator', (initial) => {
 
         try {
             for (const panel of group.items.filter((item) => item.enabled !== enable)) {
-                const response = await fetch(`/projects/${initial.project_id}/panels/${panel.id}/toggle`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' } });
+                const response = await fetch(`/projects/${initial.project_token}/panels/${panel.id}/toggle`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' } });
                 if (!response.ok) throw new Error('Grupul de panouri nu a putut fi actualizat');
                 panel.enabled = (await response.json()).enabled;
             }
@@ -708,7 +845,7 @@ Alpine.data('energySimulator', (initial) => {
         if (this.panelBusy) return;
         this.panelBusy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/panels`, {
+            const response = await fetch(`/projects/${initial.project_token}/panels`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
                 body: JSON.stringify({ preset: preset.key, quantity: Math.max(1, Math.min(20, Number(this.panelQuantity) || 1)) }),
@@ -729,7 +866,7 @@ Alpine.data('energySimulator', (initial) => {
         if (this.panelBusy) return;
         this.panelBusy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/panels/${panel.id}/duplicate`, {
+            const response = await fetch(`/projects/${initial.project_token}/panels/${panel.id}/duplicate`, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
             });
@@ -749,7 +886,7 @@ Alpine.data('energySimulator', (initial) => {
         if (this.panelBusy || !window.confirm(`Elimini un panou ${displayName} din proiect?`)) return;
         this.panelBusy = true;
         try {
-            const response = await fetch(`/projects/${initial.project_id}/panels/${panel.id}`, {
+            const response = await fetch(`/projects/${initial.project_token}/panels/${panel.id}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' },
             });

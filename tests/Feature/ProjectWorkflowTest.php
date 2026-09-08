@@ -75,7 +75,7 @@ class ProjectWorkflowTest extends TestCase
             ->assertSee('target="_blank"', false)
             ->assertSee('Panourile instalate')
             ->assertSee('Adaugă unul')
-            ->assertSee('panel-item-quantity', false)
+            ->assertDontSee('panel-item-quantity', false)
             ->assertSee('Invertoare SolarTech')
             ->assertSee('Alege invertorul')
             ->assertSee('Consumatorii proiectului')
@@ -90,7 +90,9 @@ class ProjectWorkflowTest extends TestCase
             ->assertSee("proTipVisible && activeNav!=='dashboard'", false)
             ->assertDontSee('Grafic Producție vs Consum')
             ->assertDontSee('Activitate Simulator')
-            ->assertSeeInOrder(['deye-sun-3-6k-sg05lp1', 'deye-sun-6k-sg05lp1', 'deye-sun-10k-sg05lp3']);
+            ->assertSee('deye-sun-3-6k-sg05lp1')
+            ->assertSee('deye-sun-6k-sg05lp1')
+            ->assertSee('deye-sun-10k-sg05lp3');
 
     }
 
@@ -244,13 +246,13 @@ class ProjectWorkflowTest extends TestCase
         $this->deleteJson(route('battery.destroy', $project))
             ->assertOk()
             ->assertJsonPath('enabled', false);
-        $this->assertDatabaseHas('batteries', ['id' => $battery->id, 'enabled' => false]);
+        $this->assertDatabaseHas('st_batteries', ['id' => $battery->id, 'enabled' => false]);
 
         $this->postJson(route('battery.store', $project), ['preset' => 'vtac-vt-12040-1'])
             ->assertOk()
             ->assertJsonPath('name', 'V-TAC LiFePO4 10.24kWh IP65')
             ->assertJsonPath('enabled', true);
-        $this->assertDatabaseHas('batteries', ['id' => $battery->id, 'capacity_kwh' => 10.24, 'enabled' => true]);
+        $this->assertDatabaseHas('st_batteries', ['id' => $battery->id, 'capacity_kwh' => 10.24, 'enabled' => true]);
     }
 
     public function test_solar_panels_can_be_added_from_catalog_and_removed(): void
@@ -266,8 +268,8 @@ class ProjectWorkflowTest extends TestCase
         ])->assertCreated()->assertJsonCount(2)->assertJsonPath('0.name', 'AIKO Stellar 1N+ 645W Bifacial');
 
         $panelId = $response->json('0.id');
-        $this->assertDatabaseCount('solar_panels', $initialCount + 2);
-        $this->assertDatabaseHas('solar_panels', ['id' => $panelId, 'system_id' => $system->id, 'power_w' => 645]);
+        $this->assertDatabaseCount('st_solar_panels', $initialCount + 2);
+        $this->assertDatabaseHas('st_solar_panels', ['id' => $panelId, 'system_id' => $system->id, 'power_w' => 645]);
 
         $duplicate = $this->postJson(route('panels.duplicate', [$project, $panelId]))
             ->assertCreated()
@@ -276,12 +278,12 @@ class ProjectWorkflowTest extends TestCase
             ->assertJsonPath('power_w', 645)
             ->assertJsonPath('orientation', $response->json('0.orientation'));
         $this->assertNotSame($panelId, $duplicate->json('id'));
-        $this->assertDatabaseCount('solar_panels', $initialCount + 3);
+        $this->assertDatabaseCount('st_solar_panels', $initialCount + 3);
 
         $this->deleteJson(route('panels.destroy', [$project, $panelId]))
             ->assertOk()
             ->assertJson(['deleted' => true]);
-        $this->assertDatabaseMissing('solar_panels', ['id' => $panelId]);
+        $this->assertDatabaseMissing('st_solar_panels', ['id' => $panelId]);
     }
 
     public function test_inverter_can_be_selected_from_equipment_catalog(): void

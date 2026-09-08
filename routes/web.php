@@ -1,13 +1,23 @@
 <?php
 
 use App\Http\Controllers\FeedImportController;
+use App\Http\Controllers\AuthenticatedSessionController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectReportController;
 use App\Http\Controllers\SimulationController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/projects');
-Route::resource('projects', ProjectController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+Route::get('/', HomeController::class)->name('home');
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+});
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
+
+Route::resource('projects', ProjectController::class)->only(['index', 'create', 'store', 'show']);
+Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->middleware(['auth', 'admin'])->name('projects.destroy');
 Route::get('/projects/{project}/reports/{report}', ProjectReportController::class)->name('reports.show');
 Route::post('/projects/{project}/simulation/tick', [SimulationController::class, 'tick'])->name('simulation.tick');
 Route::post('/projects/{project}/consumers', [SimulationController::class, 'storeConsumer'])->name('consumers.store');

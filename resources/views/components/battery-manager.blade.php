@@ -1,4 +1,4 @@
-<section id="battery" class="solar-card p-5">
+<section id="battery" class="solar-card battery-configuration-card p-5">
     <div class="card-heading">
         <div><h2>Baterii</h2><p>Stocarea energiei produse în exces</p></div>
         <span x-show="initial.battery.enabled" class="status-online"><i></i> Instalată</span>
@@ -27,16 +27,28 @@
     </div>
 
     <div x-show="!initial.battery.enabled" x-cloak>
-        <div class="battery-empty"><span>▣</span><div><b>Sistemul nu include baterii</b><p>Alege o capacitate pentru a stoca surplusul solar și a reduce importul din rețea.</p></div></div>
-        <div class="consumer-section-title"><span>Opțiuni disponibile</span><small x-text="batteryPresets.length+' configurații'"></small></div>
-        <div class="battery-catalog">
-            <template x-for="preset in batteryPresets" :key="preset.key">
-                <button type="button" @click="addBattery(preset)" :disabled="batteryBusy" class="battery-preset">
-                    <span class="battery-option-icon" x-text="preset.icon"></span>
-                    <span class="min-w-0 flex-1"><b x-text="preset.name"></b><small><span x-text="Number(preset.capacity_kwh).toFixed(2)+' kWh'"></span> · <span x-text="formatW(preset.power_w)"></span> · <span x-text="preset.cycles+' cicluri'"></span></small><em><span x-text="preset.ip_rating"></span> · <span x-text="Number(preset.price_lei).toLocaleString('ro-RO')+' lei'"></span></em></span>
-                    <i>＋</i>
-                </button>
-            </template>
-        </div>
+        <div class="battery-empty battery-warning"><span aria-hidden="true">⚠</span><div><b>Sistemul nu include baterii</b><p>Alege o capacitate pentru a stoca surplusul solar și a reduce importul din rețea.</p></div></div>
     </div>
+
+    <div class="consumer-section-title"><span x-text="initial.battery.enabled ? 'Schimbă bateria' : 'Opțiuni disponibile'"></span><small x-text="filteredBatteryPresets.length+' din '+batteryPresets.length+' configurații'"></small></div>
+    <section class="battery-filter-panel" aria-label="Filtre baterii">
+        <div class="battery-filter-search"><label for="battery-search">Caută baterie</label><input id="battery-search" type="search" x-model="batterySearch" placeholder="Nume, brand sau chimie"></div>
+        <label>Capacitate min. (kWh)<input type="number" min="0" step="0.1" x-model.number="batteryCapacityMin" placeholder="Oricare"></label>
+        <label>Capacitate max. (kWh)<input type="number" min="0" step="0.1" x-model.number="batteryCapacityMax" placeholder="Oricare"></label>
+        <label>Putere min. (W)<input type="number" min="0" x-model.number="batteryPowerMin" placeholder="Oricare"></label>
+        <label>Chimie<select x-model="batteryChemistry"><option value="all">Toate</option><template x-for="chemistry in [...new Set(batteryPresets.map(item => item.chemistry))].filter(Boolean)" :key="chemistry"><option :value="chemistry" x-text="chemistry"></option></template></select></label>
+        <label>Tensiune<select x-model="batteryVoltage"><option value="all">Toate</option><template x-for="voltage in [...new Set(batteryPresets.map(item => item.voltage))].filter(Boolean).sort((a,b)=>a-b)" :key="voltage"><option :value="voltage" x-text="voltage+' V'"></option></template></select></label>
+        <label>Disponibilitate<select x-model="batteryStock"><option value="all">Oricare</option><option value="in_stock">În stoc</option><option value="on_order">La comandă</option></select></label>
+        <button type="button" @click="clearBatteryFilters()">Resetează filtrele</button>
+    </section>
+    <div class="battery-catalog">
+        <template x-for="preset in filteredBatteryPresets" :key="preset.key">
+            <button type="button" @click="addBattery(preset)" :disabled="batteryBusy" class="battery-preset">
+                <span class="battery-option-icon" x-text="preset.icon"></span>
+                <span class="min-w-0 flex-1"><b x-text="preset.name"></b><small><span x-text="Number(preset.capacity_kwh).toFixed(2)+' kWh'"></span> · <span x-text="formatW(preset.power_w)"></span> · <span x-text="preset.cycles+' cicluri'"></span></small><em><span x-text="preset.ip_rating"></span> · <span x-text="Number(preset.price_lei).toLocaleString('ro-RO')+' lei'"></span></em></span>
+                <i>＋</i>
+            </button>
+        </template>
+    </div>
+    <p class="battery-filter-empty" x-show="!filteredBatteryPresets.length">Nu am găsit baterii care să corespundă filtrelor selectate.</p>
 </section>

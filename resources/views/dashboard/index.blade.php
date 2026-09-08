@@ -20,6 +20,7 @@
             <x-about-page />
             <x-dashboard-home />
         </main>
+        <x-app-footer :project="$project" />
     </div>
 </div>
 @endsection

@@ -12,6 +12,7 @@ use App\Models\System;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,7 +25,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(EquipmentCatalogSeeder::class);
 
-        $project = Project::create(['name' => 'Casa București', 'county' => 'București', 'city' => 'București', 'latitude' => 44.4268, 'longitude' => 26.1025]);
+        $project = Project::create(['name' => 'Casa București', 'share_token' => (string) Str::uuid(), 'county' => 'București', 'city' => 'București', 'latitude' => 44.4268, 'longitude' => 26.1025]);
         $system = System::create(['project_id' => $project->id, 'name' => 'Home Hybrid', 'city' => 'Bucharest']);
         foreach (range(1, 4) as $slot) {
             SolarPanel::create(['system_id' => $system->id, 'name' => 'Panou '.$slot, 'power_w' => 505, 'orientation' => 'S', 'tilt' => 35, 'slot' => $slot]);

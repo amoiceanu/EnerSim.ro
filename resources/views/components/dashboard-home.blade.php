@@ -7,7 +7,7 @@
         </div>
         <label class="dashboard-date-picker">
             <span>Data analizată</span>
-            <input type="date" :value="time.toISOString().slice(0, 10)" @change="time = new Date($event.target.value+'T14:00:00'); tick()" aria-label="Data analizată">
+            <input type="date" :value="analysisDate" @change="setAnalysisDate($event.target.value)" aria-label="Data analizată">
         </label>
     </div>
 

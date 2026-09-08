@@ -1,11 +1,13 @@
 @props(['project'])
 <header class="solar-topbar">
     <div class="flex items-center gap-3">
-        <button type="button" @click="mobileMenu=true" class="icon-button lg:hidden" aria-label="Deschide meniul">☰</button>
+        <button type="button" @click="mobileMenu=true" class="icon-button tablet-mobile-menu-toggle" aria-label="Deschide meniul">☰</button>
         <span class="hidden size-11 place-items-center rounded-xl bg-violet-50 text-2xl text-violet-600 sm:grid" x-text="pageIcon"></span>
         <div><h1 class="text-xl font-bold text-slate-900 sm:text-2xl" x-text="pageTitle"></h1><p class="hidden text-sm text-slate-500 sm:block" x-text="pageSubtitle"></p></div>
     </div>
     <div class="flex items-center gap-2">
+        <button type="button" class="secondary-button" onclick="navigator.clipboard?.writeText('{{ route('projects.show', $project) }}'); this.querySelector('span:last-child').textContent='Link copiat'" title="Copiază linkul unic al proiectului"><span>↗</span><span class="hidden md:inline">Copiază link</span></button>
+        <a href="mailto:?subject={{ rawurlencode('Proiect EnerSim: '.$project->name) }}&body={{ rawurlencode(route('projects.show', $project)) }}" class="secondary-button" title="Trimite linkul prin email"><span>✉</span><span class="hidden md:inline">Trimite</span></a>
         <button type="button" @click="nightMode=!nightMode" class="day-toggle" :title="nightMode ? 'Comută pe mod zi' : 'Comută pe mod noapte'"><span :class="!nightMode && 'active'">☀</span><span :class="nightMode && 'active'">☾</span></button>
         <button type="button" @click="running ? pause() : navigate('simulation')" class="primary-button"><span x-text="running ? 'Ⅱ' : '▶'"></span><span class="hidden sm:inline" x-text="running ? 'Pauză' : 'Simulare'"></span></button>
         <button type="button" @click="window.print()" class="secondary-button"><span>⇩</span><span class="hidden md:inline">Export PDF</span></button>

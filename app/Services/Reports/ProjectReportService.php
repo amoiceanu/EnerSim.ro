@@ -63,10 +63,19 @@ final class ProjectReportService
         $equipmentTotal = 0.0;
         $unpriced = 0;
 
-        foreach ($system->panels->groupBy(fn ($panel) => $panel->name.'|'.$panel->power_w) as $panels) {
-            $panel = $panels->first();
-            $component = ($catalog->get('panel') ?? collect())->first(fn ($item) => str_contains($panel->name, $item->name) || (int) ($item->tech_data['power_w'] ?? 0) === (int) $panel->power_w);
-            [$row,$value,$missing] = $this->costRow('Panouri', $panel->name, $panels->count(), 'buc.', $component?->price_lei, $panel->power_w.' W/panou');
+        $panelCatalog = $catalog->get('panel') ?? collect();
+        $panelGroups = $system->panels
+            ->map(function ($panel) use ($panelCatalog): array {
+                $component = $panelCatalog->first(fn ($item) => str_contains($panel->name, $item->name) || (int) ($item->tech_data['power_w'] ?? 0) === (int) $panel->power_w);
+
+                return compact('panel', 'component');
+            })
+            ->groupBy(fn (array $item) => $item['component']?->id ?? $item['panel']->name.'|'.$item['panel']->power_w);
+
+        foreach ($panelGroups as $items) {
+            $panel = $items->first()['panel'];
+            $component = $items->first()['component'];
+            [$row,$value,$missing] = $this->costRow('Panouri', $component?->name ?? $panel->name, $items->count(), 'buc.', $component?->price_lei, $panel->power_w.' W/panou');
             $equipmentRows[] = $row;
             $equipmentTotal += $value;
             $unpriced += $missing;
@@ -217,10 +226,13 @@ final class ProjectReportService
         $active = $panels->where('enabled', true);
         $installed = (int) $panels->sum('power_w');
         $activeW = (int) $active->sum('power_w');
-        $rows = $panels->groupBy(fn ($panel) => $panel->name.'|'.$panel->power_w.'|'.$panel->orientation.'|'.$panel->tilt)->map(function ($items) {
+        $panelModelName = static function (string $name): string {
+            return preg_match('/^Panou\s+\d+(?:\s+#\d+)?$/iu', trim($name)) ? 'Panou' : preg_replace('/\s+#\d+$/u', '', $name);
+        };
+        $rows = $panels->groupBy(fn ($panel) => $panelModelName($panel->name).'|'.$panel->power_w.'|'.$panel->orientation.'|'.$panel->tilt)->map(function ($items) use ($panelModelName) {
             $panel = $items->first();
 
-            return [$panel->name, (string) $items->count(), $this->power((int) $panel->power_w), $panel->orientation.' / '.$panel->tilt.'°', number_format((float) $panel->losses_percent, 1, ',', '.').'%', $items->where('enabled', true)->count().' active'];
+            return [$panelModelName($panel->name), (string) $items->count(), $this->power((int) $panel->power_w), $panel->orientation.' / '.$panel->tilt.'°', number_format((float) $panel->losses_percent, 1, ',', '.').'%', $items->where('enabled', true)->count().' active'];
         })->values()->all();
 
         return [

@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -11,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
+            $table->uuid('share_token')->unique();
             $table->string('name');
             $table->string('county');
             $table->string('city');
@@ -30,6 +32,7 @@ return new class extends Migration
             if ($system) {
                 $projectId = DB::table('projects')->insertGetId([
                     'name' => $system->name,
+                    'share_token' => (string) Str::uuid(),
                     'county' => 'București',
                     'city' => $system->city,
                     'latitude' => $system->latitude,

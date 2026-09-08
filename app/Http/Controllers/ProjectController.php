@@ -113,7 +113,7 @@ class ProjectController extends Controller
         ];
         $reportDefinitions = ProjectReportService::definitions();
         $simulatorData = [
-            'project_id' => $project->id, 'project_name' => $project->name,
+            'project_id' => $project->id, 'project_token' => $project->getRouteKey(), 'project_name' => $project->name,
             'project' => $project->only(['name', 'city', 'county', 'latitude', 'longitude']),
             'system' => $system->only(['name', 'timezone']),
             'inverter' => $system->inverter,

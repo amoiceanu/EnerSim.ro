@@ -29,6 +29,5 @@
         @endforeach
     </nav>
     <div class="border-t border-slate-100 p-4">
-        <label class="flex items-center justify-between text-sm font-semibold text-slate-600"><span>Mod interfață</span><select class="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700"><option>Mod Simplu</option><option>Mod Avansat</option></select></label>
     </div>
 </aside>

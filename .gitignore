@@ -25,6 +25,7 @@
 /database/*.sqlite
 /output
 /tmp
+/coverage-html
 toArray())
 toArray()))
 Homestead.json

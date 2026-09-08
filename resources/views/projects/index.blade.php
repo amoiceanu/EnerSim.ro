@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Proiectele mele · EnerSim</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/css/app.less', 'resources/js/app.js'])
 </head>
 <body class="projects-page min-h-screen font-sans antialiased">
+    <x-ad-placeholders />
     <header class="projects-header">
         <div class="projects-shell projects-header-inner">
             <div class="projects-brand">
@@ -29,7 +33,7 @@
         <section class="projects-intro" aria-labelledby="projects-title">
             <p>Workspace</p>
             <h1 id="projects-title">Proiectele mele</h1>
-            <div>Fiecare adresă are consumatorii, instalația și simulările sale. Poți crea oricâte proiecte dorești.</div>
+            <div>Fiecare adresă are consumatorii, instalația și simulările sale. Poți crea oricâte proiecte dorești. <span class="projects-count-badge">{{ $projects->count() }} {{ $projects->count() === 1 ? 'proiect' : 'proiecte' }}</span></div>
         </section>
 
         @if($projects->isEmpty())
@@ -44,6 +48,9 @@
                 @foreach($projects as $project)
                     @php($system = $project->systems->first())
                     @php($a = $project->assessment)
+                    @php($solarPower = (float) ($a['pv_w'] ?? 0))
+                    @php($consumptionPower = (float) ($a['continuous_w'] ?? 0))
+                    @php($chartMaximum = max($solarPower, $consumptionPower, 1))
                     <article class="project-card">
                         <div class="project-card-top">
                             <div class="project-identity">
@@ -53,12 +60,17 @@
                                     <p><span aria-hidden="true">⌖</span> {{ $project->city }}, {{ $project->county }}</p>
                                 </div>
                             </div>
-                            <span class="project-status project-status-{{ $a['status'] }}">{{ mb_strtoupper($a['label']) }}</span>
+                            <span class="project-status project-status-{{ $a['status'] }}">@if($a['status'] === 'partial')<i class="project-status-warning" aria-hidden="true">⚠</i>@endif{{ mb_strtoupper($a['label']) }}</span>
                         </div>
 
-                        <dl class="project-metrics">
-                            <div class="project-metric project-metric-solar"><span class="project-metric-icon" aria-hidden="true">☀</span><div><dt>Solar</dt><dd>{{ number_format(($a['pv_w'] ?? 0) / 1000, 2) }} kWp</dd></div></div>
-                            <div class="project-metric project-metric-consumption"><span class="project-metric-icon" aria-hidden="true">ϟ</span><div><dt>Consum</dt><dd>{{ number_format(($a['continuous_w'] ?? 0) / 1000, 2) }} kW</dd></div></div>
+                        <section class="project-energy-chart" aria-label="Comparație producție solară și consum">
+                            <div class="project-chart-legend"><span class="is-solar"><i></i> Producție solară</span><span class="is-consumption"><i></i> Consum</span></div>
+                            <div class="project-chart-row is-solar"><span aria-hidden="true">☀</span><div><b>SOLAR</b><i><em style="width: {{ ($solarPower / $chartMaximum) * 100 }}%"></em></i></div><strong>{{ number_format($solarPower / 1000, 2) }} kWp</strong></div>
+                            <div class="project-chart-row is-consumption"><span aria-hidden="true">ϟ</span><div><b>CONSUM</b><i><em style="width: {{ ($consumptionPower / $chartMaximum) * 100 }}%"></em></i></div><strong>{{ number_format($consumptionPower / 1000, 2) }} kW</strong></div>
+                        </section>
+
+                        <div class="project-card-footer">
+                        <dl class="project-score-row">
                             <div class="project-metric project-metric-score">
                                 <span class="project-metric-icon" aria-hidden="true">✓</span>
                                 <div class="project-metric-copy">
@@ -77,11 +89,12 @@
 
                         <div class="project-actions">
                             <a href="{{ route('projects.show', $project) }}" class="projects-open-button">Deschide simulatorul <span aria-hidden="true">→</span></a>
-                            <form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('Ștergi proiectul și toate datele sale?')">
+                            @auth<form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('Ștergi proiectul și toate datele sale?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="project-delete-button"><span aria-hidden="true">×</span> Șterge</button>
-                            </form>
+                            </form>@endauth
+                        </div>
                         </div>
                     </article>
                 @endforeach
@@ -94,5 +107,6 @@
             </section>
         @endif
     </main>
+    <x-app-footer />
 </body>
 </html>

@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // Optional Google AdSense identifiers. Leave unset in development to keep placeholders visible.
+    'adsense' => [
+        'client' => env('ADSENSE_CLIENT'),
+        'about_left_slot' => env('ADSENSE_ABOUT_LEFT_SLOT'),
+        'about_right_slot' => env('ADSENSE_ABOUT_RIGHT_SLOT'),
+    ],
+
 ];
