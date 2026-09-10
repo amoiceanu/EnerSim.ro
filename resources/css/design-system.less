@@ -1,0 +1,103 @@
+// Shared SaaS components. Imported after legacy page rules to progressively
+// unify the existing application without changing its markup or behaviour.
+html { background: @color-page-bg; }
+
+body {
+    background: @color-page-bg;
+    color: @color-text;
+    font-family: 'Plus Jakarta Sans', Inter, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+    color: @color-text-strong;
+    letter-spacing: -.035em;
+}
+
+.solar-app {
+    background: @color-page-bg;
+    color: @color-text;
+}
+
+.solar-sidebar {
+    width: @sidebar-width !important;
+    border-right: 1px solid @color-border;
+    background: @color-surface;
+
+    .sidebar-label { color: @color-text-muted; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+    .sidebar-link { position: relative; color: @color-text-secondary; font-size: 14px; font-weight: 700; }
+    .sidebar-link:hover { background: @color-surface-muted; color: @color-primary-hover; }
+    .sidebar-link-active { background: @color-primary-soft !important; color: @color-primary-active !important; }
+    .sidebar-link-active::before { position: absolute; inset: 7px auto 7px 0; width: 4px; border-radius: 0 4px 4px 0; background: @color-primary; content: ''; }
+    .sidebar-icon { color: currentColor; }
+}
+
+.solar-topbar {
+    min-height: @header-height;
+    height: @header-height;
+    border-bottom-color: @color-border;
+    background: fade(@color-surface, 97%);
+}
+
+.solar-card, .glass, .dashboard-card, .dashboard-metric, .report-preview,
+.report-option-card, .simulation-selector-card, .simulation-comparison,
+.feed-import-card, .feed-catalog-card, .feed-format-card {
+    border-color: @color-border;
+    border-radius: @radius-md;
+    background: @color-surface;
+    box-shadow: @shadow-card;
+}
+
+.solar-card:hover, .dashboard-card:hover, .report-option-card:hover,
+.feed-catalog-card:hover { box-shadow: @shadow-card-hover; }
+
+.primary-button, .public-nav-primary {
+    min-height: 42px;
+    border-color: @color-primary;
+    background: @color-primary;
+    box-shadow: @shadow-primary;
+}
+.primary-button:hover, .public-nav-primary:hover { background: @color-primary-hover; }
+.primary-button:active, .public-nav-primary:active { background: @color-primary-active; transform: translateY(1px); }
+.secondary-button { min-height: 42px; border-color: @color-border-strong; color: @color-text; }
+.secondary-button:hover { border-color: @color-primary-border; background: @color-primary-soft; color: @color-primary-active; }
+
+.solar-app button:focus-visible, .solar-app a:focus-visible,
+.solar-app input:focus-visible, .solar-app select:focus-visible,
+.public-page button:focus-visible, .public-page a:focus-visible,
+.public-page input:focus-visible { .focus-ring(); }
+
+.solar-app input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.solar-app select {
+    min-height: 44px;
+    border-color: @color-border-strong;
+    border-radius: @radius-sm;
+    background: @color-surface;
+    color: @color-text;
+}
+.solar-app input:focus, .solar-app select:focus { border-color: @color-primary; box-shadow: 0 0 0 3px fade(@color-primary, 14%); }
+
+.field-label { color: @color-text; font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+
+.app-footer { border-top-color: lighten(@color-footer, 12%); background: @color-footer; color: @color-footer-text; }
+.app-footer a { color: @color-footer-muted; }
+.app-footer-contact a { color: #BCA9FF; }
+
+// Location & weather: one strong intro and two balanced configuration surfaces.
+.weather-page-grid { grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); align-items: stretch; }
+.weather-page-grid > .solar-card { padding: 24px !important; }
+.weather-page-grid .location-card { background: linear-gradient(135deg, #fff 0%, #fbfaff 100%); }
+.weather-page-grid .location-visual { border-color: @color-primary-border; background: @color-primary-soft; }
+.weather-page-grid .location-visual > span { background: @color-surface; color: @color-primary; }
+.weather-options { gap: 10px; }
+.weather-options button { min-height: 92px; border-color: @color-border; border-radius: @radius-sm; background: @color-surface-muted; }
+.weather-options button:hover { border-color: @color-primary-border; background: #f8f6ff; }
+.weather-options button.is-selected { border-color: @color-primary; background: @color-primary-soft; box-shadow: 0 0 0 3px fade(@color-primary, 10%); }
+.random-weather-toggle { border-top-color: @color-border; }
+.random-weather-toggle input { accent-color: @color-primary; }
+
+@media (max-width: 1023px) {
+    .weather-page-grid { grid-template-columns: 1fr; }
+}

@@ -12,6 +12,6 @@ class Battery extends Model
 
     protected function casts(): array
     {
-        return ['enabled' => 'boolean'];
+        return ['tech_data' => 'array', 'price_lei' => 'decimal:2', 'source_checked_at' => 'date', 'active' => 'boolean'];
     }
 }

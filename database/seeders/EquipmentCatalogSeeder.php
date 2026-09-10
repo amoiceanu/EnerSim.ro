@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\EquipmentComponent;
+use App\Models\Battery;
+use App\Models\Inverter;
+use App\Models\SolarPanel;
 use Illuminate\Database\Seeder;
 
 class EquipmentCatalogSeeder extends Seeder
@@ -10,7 +12,13 @@ class EquipmentCatalogSeeder extends Seeder
     public function run(): void
     {
         foreach ($this->components() as $component) {
-            EquipmentComponent::updateOrCreate(['slug' => $component['slug']], $component);
+            $model = match ($component['type']) {
+                'panel' => SolarPanel::class,
+                'inverter' => Inverter::class,
+                'battery' => Battery::class,
+            };
+            unset($component['type']);
+            $model::updateOrCreate(['slug' => $component['slug']], $component);
         }
     }
 

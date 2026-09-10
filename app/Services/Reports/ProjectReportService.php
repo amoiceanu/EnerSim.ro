@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Reports;
 
 use App\DTOs\SimulationState;
-use App\Models\EquipmentComponent;
 use App\Models\Project;
 use App\Services\Simulation\SimulationEngine;
 use Carbon\CarbonImmutable;
@@ -58,38 +57,31 @@ final class ProjectReportService
     /** @return array<string, mixed> */
     private function costReport(object $system): array
     {
-        $catalog = EquipmentComponent::query()->where('active', true)->get()->groupBy('type');
         $equipmentRows = [];
         $equipmentTotal = 0.0;
         $unpriced = 0;
 
-        $panelCatalog = $catalog->get('panel') ?? collect();
         $panelGroups = $system->panels
-            ->map(function ($panel) use ($panelCatalog): array {
-                $component = $panelCatalog->first(fn ($item) => str_contains($panel->name, $item->name) || (int) ($item->tech_data['power_w'] ?? 0) === (int) $panel->power_w);
-
-                return compact('panel', 'component');
-            })
-            ->groupBy(fn (array $item) => $item['component']?->id ?? $item['panel']->name.'|'.$item['panel']->power_w);
+            ->groupBy(fn ($panel) => $panel->solar_panel_id);
 
         foreach ($panelGroups as $items) {
-            $panel = $items->first()['panel'];
-            $component = $items->first()['component'];
-            [$row,$value,$missing] = $this->costRow('Panouri', $component?->name ?? $panel->name, $items->count(), 'buc.', $component?->price_lei, $panel->power_w.' W/panou');
+            $panel = $items->first();
+            $component = $panel->solarPanel;
+            [$row,$value,$missing] = $this->costRow('Panouri', $component->name, $items->count(), 'buc.', $component->price_lei, $panel->power_w.' W/panou');
             $equipmentRows[] = $row;
             $equipmentTotal += $value;
             $unpriced += $missing;
         }
 
-        $inverterComponent = ($catalog->get('inverter') ?? collect())->first(fn ($item) => str_contains($system->inverter->name, (string) $item->model) || (int) ($item->tech_data['nominal_power_w'] ?? 0) === (int) $system->inverter->nominal_power_w);
-        [$row,$value,$missing] = $this->costRow('Invertor', $system->inverter->name, 1, 'buc.', $inverterComponent?->price_lei, $this->power($system->inverter->nominal_power_w).' nominal');
+        $inverterComponent = $system->inverter->inverter;
+        [$row,$value,$missing] = $this->costRow('Invertor', $inverterComponent->name, 1, 'buc.', $inverterComponent->price_lei, $this->power($system->inverter->nominal_power_w).' nominal');
         $equipmentRows[] = $row;
         $equipmentTotal += $value;
         $unpriced += $missing;
 
         if ($system->battery?->enabled) {
-            $batteryComponent = ($catalog->get('battery') ?? collect())->first(fn ($item) => abs((float) ($item->tech_data['capacity_kwh'] ?? 0) - (float) $system->battery->capacity_kwh) < .01);
-            [$row,$value,$missing] = $this->costRow('Baterie', $system->battery->name, 1, 'buc.', $batteryComponent?->price_lei, number_format((float) $system->battery->capacity_kwh, 2, ',', '.').' kWh');
+            $batteryComponent = $system->battery->battery;
+            [$row,$value,$missing] = $this->costRow('Baterie', $batteryComponent->name, 1, 'buc.', $batteryComponent->price_lei, number_format((float) $system->battery->capacity_kwh, 2, ',', '.').' kWh');
             $equipmentRows[] = $row;
             $equipmentTotal += $value;
             $unpriced += $missing;

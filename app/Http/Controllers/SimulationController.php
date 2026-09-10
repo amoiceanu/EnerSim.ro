@@ -8,10 +8,12 @@ use App\DTOs\SimulationState;
 use App\Http\Requests\SimulationTickRequest;
 use App\Models\Battery;
 use App\Models\Consumer;
-use App\Models\EquipmentComponent;
 use App\Models\Inverter;
 use App\Models\Project;
 use App\Models\SolarPanel;
+use App\Models\SystemBattery;
+use App\Models\SystemInverter;
+use App\Models\SystemSolarPanel;
 use App\Services\Simulation\PowerFlowService;
 use App\Services\Simulation\SimulationEngine;
 use Carbon\CarbonImmutable;
@@ -101,24 +103,16 @@ class SimulationController extends Controller
     public function storeBattery(Project $project, Request $request): JsonResponse
     {
         $data = $request->validate(['preset' => ['required', 'string']]);
-        $component = EquipmentComponent::query()->where('type', 'battery')->where('slug', $data['preset'])->where('active', true)->first();
+        $component = Battery::query()->where('slug', $data['preset'])->where('active', true)->first();
         abort_unless($component, 422, 'Baterie indisponibilă.');
-        $preset = $component->tech_data;
 
         $system = $project->systems()->with('inverter')->firstOrFail();
         abort_unless($system->inverter?->battery_supported, 422, 'Invertorul nu acceptă baterii.');
 
-        $battery = Battery::updateOrCreate(
+        $battery = SystemBattery::updateOrCreate(
             ['system_id' => $system->id],
             [
-                'name' => $component->name,
-                'chemistry' => $preset['chemistry'],
-                'voltage' => $preset['voltage_v'],
-                'capacity_kwh' => $preset['capacity_kwh'],
-                'capacity_ah' => $preset['capacity_ah'],
-                'max_charge_power_w' => $preset['max_power_w'],
-                'max_discharge_power_w' => $preset['max_power_w'],
-                'efficiency' => 95,
+                'battery_id' => $component->id,
                 'min_soc' => 10,
                 'max_soc' => 100,
                 'current_soc' => 80,
@@ -139,7 +133,7 @@ class SimulationController extends Controller
         return response()->json($system->battery->fresh());
     }
 
-    public function togglePanel(Project $project, SolarPanel $panel): JsonResponse
+    public function togglePanel(Project $project, SystemSolarPanel $panel): JsonResponse
     {
         abort_unless($panel->system->project_id === $project->id, 404);
         $panel->update(['enabled' => ! $panel->enabled]);
@@ -153,9 +147,8 @@ class SimulationController extends Controller
             'preset' => ['required', 'string'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
         ]);
-        $component = EquipmentComponent::query()->where('type', 'panel')->where('slug', $data['preset'])->where('active', true)->first();
+        $component = SolarPanel::query()->where('slug', $data['preset'])->where('active', true)->first();
         abort_unless($component, 422, 'Model de panou indisponibil.');
-        $preset = $component->tech_data;
 
         $system = $project->systems()->withCount('panels')->firstOrFail();
         abort_if($system->panels_count + $data['quantity'] > 200, 422, 'Un proiect poate include maximum 200 de panouri.');
@@ -164,8 +157,7 @@ class SimulationController extends Controller
             $slot = $nextSlot + $offset;
 
             return $system->panels()->create([
-                'name' => $component->name,
-                'power_w' => $preset['power_w'],
+                'solar_panel_id' => $component->id,
                 'orientation' => 'S',
                 'tilt' => 35,
                 'losses_percent' => 15,
@@ -178,7 +170,7 @@ class SimulationController extends Controller
         return response()->json($panels, 201);
     }
 
-    public function duplicatePanel(Project $project, SolarPanel $panel): JsonResponse
+    public function duplicatePanel(Project $project, SystemSolarPanel $panel): JsonResponse
     {
         abort_unless($panel->system->project_id === $project->id, 404);
         abort_if($panel->system->panels()->count() >= 200, 422, 'Un proiect poate include maximum 200 de panouri.');
@@ -186,13 +178,12 @@ class SimulationController extends Controller
         $nextSlot = ((int) $panel->system->panels()->max('slot')) + 1;
         $duplicate = $panel->replicate();
         $duplicate->slot = $nextSlot;
-        $duplicate->name = preg_replace('/\s+#\d+$/', '', $panel->name);
         $duplicate->save();
 
         return response()->json($duplicate->fresh(), 201);
     }
 
-    public function destroyPanel(Project $project, SolarPanel $panel): JsonResponse
+    public function destroyPanel(Project $project, SystemSolarPanel $panel): JsonResponse
     {
         abort_unless($panel->system->project_id === $project->id, 404);
         $panel->delete();
@@ -203,22 +194,11 @@ class SimulationController extends Controller
     public function storeInverter(Project $project, Request $request): JsonResponse
     {
         $data = $request->validate(['preset' => ['required', 'string']]);
-        $component = EquipmentComponent::query()->where('type', 'inverter')->where('slug', $data['preset'])->where('active', true)->first();
+        $component = Inverter::query()->where('slug', $data['preset'])->where('active', true)->first();
         abort_unless($component, 422, 'Invertor indisponibil.');
-        $preset = $component->tech_data;
         $system = $project->systems()->firstOrFail();
 
-        $inverter = Inverter::updateOrCreate(['system_id' => $system->id], [
-            'name' => $component->name,
-            'nominal_power_w' => $preset['nominal_power_w'],
-            'max_pv_power_w' => $preset['max_pv_power_w'],
-            'max_backup_power_w' => $preset['max_backup_power_w'],
-            'surge_power_w' => $preset['surge_power_w'],
-            'efficiency' => $preset['efficiency_percent'],
-            'hybrid' => $preset['hybrid'],
-            'battery_supported' => true,
-            'zero_export_supported' => true,
-        ]);
+        $inverter = SystemInverter::updateOrCreate(['system_id' => $system->id], ['inverter_id' => $component->id]);
 
         return response()->json($inverter->fresh());
     }

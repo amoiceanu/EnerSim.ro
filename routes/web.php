@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FeedImportController;
+use App\Http\Controllers\AdminProjectController;
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProjectController;
@@ -15,6 +16,8 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
+Route::get('/admin', [AdminProjectController::class, 'index'])->middleware(['auth', 'admin'])->name('admin.dashboard');
+Route::get('/admin/projects', [AdminProjectController::class, 'index'])->middleware(['auth', 'admin'])->name('admin.projects.index');
 
 Route::resource('projects', ProjectController::class)->only(['index', 'create', 'store', 'show']);
 Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->middleware(['auth', 'admin'])->name('projects.destroy');

@@ -18,17 +18,17 @@ class System extends Model
 
     public function panels(): HasMany
     {
-        return $this->hasMany(SolarPanel::class);
+        return $this->hasMany(SystemSolarPanel::class)->with('solarPanel');
     }
 
     public function inverter(): HasOne
     {
-        return $this->hasOne(Inverter::class);
+        return $this->hasOne(SystemInverter::class)->with('inverter');
     }
 
     public function battery(): HasOne
     {
-        return $this->hasOne(Battery::class);
+        return $this->hasOne(SystemBattery::class)->with('battery');
     }
 
     public function consumers(): HasMany

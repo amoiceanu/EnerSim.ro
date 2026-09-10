@@ -1,0 +1,51 @@
+// EnerSim design tokens. Keep page-level styles free of hard-coded brand values.
+@color-primary: #6941E8;
+@color-primary-hover: #5835D1;
+@color-primary-active: #4729B1;
+@color-primary-soft: #F0EBFF;
+@color-primary-border: #CDBEFF;
+
+@color-page-bg: #F5F6FA;
+@color-surface: #FFFFFF;
+@color-surface-muted: #F8F9FC;
+@color-border: #DDE2EC;
+@color-border-strong: #C8D0DF;
+
+@color-text: #111C38;
+@color-text-strong: #08142F;
+@color-text-secondary: #64708A;
+@color-text-muted: #8993A8;
+
+@color-success: #12B981;
+@color-warning: #F5A524;
+@color-danger: #E5484D;
+@color-solar: #F5A524;
+
+@color-footer: #101D3B;
+@color-footer-text: #EAF0FF;
+@color-footer-muted: #AEBBD6;
+
+@radius-sm: 10px;
+@radius-md: 14px;
+@radius-lg: 18px;
+
+@shadow-card: 0 8px 24px rgba(18, 33, 66, .06);
+@shadow-card-hover: 0 14px 32px rgba(18, 33, 66, .10);
+@shadow-primary: 0 8px 18px rgba(105, 65, 232, .25);
+
+@sidebar-width: 268px;
+@content-max-width: 1440px;
+@header-height: 80px;
+
+.focus-ring() {
+    outline: 3px solid fade(@color-primary, 28%);
+    outline-offset: 3px;
+}
+
+.surface-card(@padding: 22px) {
+    border: 1px solid @color-border;
+    border-radius: @radius-md;
+    background: @color-surface;
+    padding: @padding;
+    box-shadow: @shadow-card;
+}

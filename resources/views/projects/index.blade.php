@@ -21,7 +21,7 @@
                     <p>Portofoliul tău energetic</p>
                 </div>
             </div>
-            <a href="{{ route('projects.create') }}" class="projects-new-button"><span aria-hidden="true">＋</span> Proiect nou</a>
+            <div class="projects-header-actions">@if(auth()->user()?->is_admin)<a href="{{ route('admin.projects.index') }}" class="projects-admin-link">Administrare</a>@endif<a href="{{ route('projects.create') }}" class="projects-new-button"><span aria-hidden="true">＋</span> Proiect nou</a></div>
         </div>
     </header>
 
@@ -60,7 +60,13 @@
                                     <p><span aria-hidden="true">⌖</span> {{ $project->city }}, {{ $project->county }}</p>
                                 </div>
                             </div>
-                            <span class="project-status project-status-{{ $a['status'] }}">@if($a['status'] === 'partial')<i class="project-status-warning" aria-hidden="true">⚠</i>@endif{{ mb_strtoupper($a['label']) }}</span>
+                            <span class="project-status project-status-{{ $a['status'] }}">
+                                @if($a['status'] === 'partial')
+                                    <button type="button" class="project-status-warning" aria-label="De ce este sistemul la limită?" aria-describedby="status-info-{{ $project->id }}">⚠</button>
+                                    <span id="status-info-{{ $project->id }}" class="project-status-tooltip" role="tooltip">Sistemul acoperă doar parțial necesarul. Verifică puterea instalată, consumul simultan și energia zilnică înainte de configurarea finală.</span>
+                                @endif
+                                {{ mb_strtoupper($a['label']) }}
+                            </span>
                         </div>
 
                         <section class="project-energy-chart" aria-label="Comparație producție solară și consum">
@@ -83,6 +89,13 @@
                                         </span>
                                     </div>
                                     <dd>{{ $a['score'] }}%</dd>
+                                </div>
+                            </div>
+                            <div class="project-cost-chip">
+                                <span class="project-cost-icon" aria-hidden="true">₿</span>
+                                <div>
+                                    <dt>Cost sistem</dt>
+                                    <dd>{{ $project->system_cost }}</dd>
                                 </div>
                             </div>
                         </dl>

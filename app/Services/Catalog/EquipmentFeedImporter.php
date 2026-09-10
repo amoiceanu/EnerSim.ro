@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Catalog;
 
-use App\Models\EquipmentComponent;
+use App\Models\Battery;
+use App\Models\Inverter;
+use App\Models\SolarPanel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -34,7 +36,8 @@ final class EquipmentFeedImporter
                         continue;
                     }
 
-                    $component = EquipmentComponent::query()
+                    $model = $this->model($type);
+                    $component = $model::query()
                         ->where('sku', $payload['sku'])
                         ->orWhere('source_url', $payload['source_url'])
                         ->first();
@@ -46,7 +49,7 @@ final class EquipmentFeedImporter
                         $result['updated']++;
                     } else {
                         $payload['slug'] = $this->uniqueSlug($type, (string) $payload['sku'], (string) $payload['source_url']);
-                        EquipmentComponent::create($payload);
+                        $model::create($payload);
                         $result['created']++;
                     }
 
@@ -96,7 +99,6 @@ final class EquipmentFeedImporter
         });
 
         return [
-            'type' => $type,
             'brand' => Str::limit($brand, 255, ''),
             'name' => Str::limit($name, 255, ''),
             'model' => Str::limit($sku, 255, ''),
@@ -188,11 +190,22 @@ final class EquipmentFeedImporter
         $base = Str::slug($type.'-'.$sku) ?: $type.'-'.substr(sha1($url), 0, 12);
         $slug = $base;
         $suffix = 2;
-        while (EquipmentComponent::query()->where('slug', $slug)->exists()) {
+        $model = $this->model($type);
+        while ($model::query()->where('slug', $slug)->exists()) {
             $slug = $base.'-'.$suffix++;
         }
 
         return $slug;
+    }
+
+    /** @return class-string<SolarPanel|Inverter|Battery> */
+    private function model(string $type): string
+    {
+        return match ($type) {
+            'panel' => SolarPanel::class,
+            'inverter' => Inverter::class,
+            'battery' => Battery::class,
+        };
     }
 
     private function stockStatus(string $value): string

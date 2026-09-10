@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\EquipmentComponent;
+use App\Models\SolarPanel;
 use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -17,7 +17,7 @@ class EquipmentFeedImportTest extends TestCase
     {
         $this->seed();
         $project = Project::firstOrFail();
-        $initialCount = EquipmentComponent::count();
+        $initialCount = SolarPanel::count();
         $path = $this->feedFile();
 
         try {
@@ -33,8 +33,8 @@ class EquipmentFeedImportTest extends TestCase
                 ->assertRedirect(route('projects.show', $project).'#feed')
                 ->assertSessionHas('feed_import_result.updated', 1);
 
-            $this->assertDatabaseCount('equipment_components', $initialCount);
-            $this->assertDatabaseHas('equipment_components', [
+            $this->assertDatabaseCount('st_solar_panels', $initialCount);
+            $this->assertDatabaseHas('st_solar_panels', [
                 'sku' => 'TSM-445-NEG9R.27',
                 'price_lei' => 499,
                 'stock_status' => 'in_stock',

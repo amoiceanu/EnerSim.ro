@@ -1,6 +1,6 @@
 <section x-show="activeNav==='inverters'" x-cloak class="dedicated-page inverters-page">
     <div class="dedicated-page-head">
-        <div><span>Conversie și control</span><h2>Invertoare SolarTech</h2><p>Compară specificațiile și schimbă invertorul folosit în simularea proiectului.</p></div>
+        <div><h2>Invertoare SolarTech</h2><p>Compară specificațiile și schimbă invertorul folosit în simularea proiectului.</p></div>
         <div class="page-summary-pill"><b x-text="formatW(initial.inverter.nominal_power_w)"></b><small>selectat</small></div>
     </div>
 
@@ -15,7 +15,7 @@
         <div class="inverter-power-chart-row is-inverter"><div><span aria-hidden="true">◈</span><b>Limită PV invertor</b><strong x-text="formatW(initial.inverter.max_pv_power_w)"></strong></div><i><em :style="`width:${Math.min(100, Number(initial.inverter.max_pv_power_w) / Math.max(Number(initial.inverter.max_pv_power_w), installedW, 1) * 100)}%`"></em></i></div>
     </section>
 
-    <div class="inverter-selection-head"><div><h3>Alege invertorul</h3><p>Prețuri și specificații preluate din catalogul SolarTech.</p></div><span x-text="filteredInverterPresets.length+' din '+inverterPresets.length+' modele' "></span></div>
+    <div class="inverter-selection-head"><div><h3 x-text="initial.inverter && initial.inverter.id ? 'Schimbă invertorul' : 'Alege invertorul'"></h3><p>Prețuri și specificații preluate din catalogul SolarTech.</p></div><span x-text="filteredInverterPresets.length+' din '+inverterPresets.length+' modele' "></span></div>
     <section class="inverter-filter-panel" aria-label="Filtre invertoare">
         <div class="inverter-filter-search"><label for="inverter-search">Caută invertor</label><input id="inverter-search" type="search" x-model="inverterSearch" placeholder="Nume, model sau brand"></div>
         <label>Putere min. (W)<input type="number" min="0" x-model.number="inverterPowerMin" placeholder="Oricare"></label>

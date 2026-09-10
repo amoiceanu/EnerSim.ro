@@ -12,6 +12,6 @@ class Inverter extends Model
 
     protected function casts(): array
     {
-        return ['hybrid' => 'boolean', 'battery_supported' => 'boolean', 'zero_export_supported' => 'boolean'];
+        return ['tech_data' => 'array', 'price_lei' => 'decimal:2', 'source_checked_at' => 'date', 'active' => 'boolean'];
     }
 }

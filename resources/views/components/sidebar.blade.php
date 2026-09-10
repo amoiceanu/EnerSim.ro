@@ -28,6 +28,4 @@
             </div>
         @endforeach
     </nav>
-    <div class="border-t border-slate-100 p-4">
-    </div>
 </aside>
