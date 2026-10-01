@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Install, audit, build, test, deploy checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: ctype, fileinfo, mbstring, openssl, pdo_sqlite, sqlite3, xml, dom, curl, zip
+          coverage: xdebug
+          tools: composer:v2
+          ini-values: post_max_size=256M, short_open_tag=Off
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.12'
+          cache: npm
+
+      - name: Validate Composer manifest
+        run: composer validate --strict
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Audit Composer dependencies
+        run: composer audit --locked
+
+      - name: Audit npm dependencies
+        run: npm audit
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Run full test suite and enforce coverage
+        run: php artisan test --coverage --min=80
+        env:
+          XDEBUG_MODE: coverage
+
+      - name: Check production migrations and Laravel caches
+        run: |
+          touch database/deploy-check.sqlite
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+        env:
+          APP_ENV: production
+          APP_DEBUG: 'false'
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          APP_URL: https://enersim.example.invalid
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/deploy-check.sqlite
+          CACHE_STORE: file
+          SESSION_DRIVER: file
+          QUEUE_CONNECTION: sync

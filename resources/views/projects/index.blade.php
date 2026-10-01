@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/css/app.less', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/app.scss', 'resources/js/app.js'])
 </head>
 <body class="projects-page min-h-screen font-sans antialiased">
     <x-ad-placeholders />

@@ -153,7 +153,7 @@ class SimulationController extends Controller
         $system = $project->systems()->withCount('panels')->firstOrFail();
         abort_if($system->panels_count + $data['quantity'] > 200, 422, 'Un proiect poate include maximum 200 de panouri.');
         $nextSlot = ((int) $system->panels()->max('slot')) + 1;
-        $panels = collect(range(0, $data['quantity'] - 1))->map(function (int $offset) use ($system, $component, $preset, $nextSlot) {
+        $panels = collect(range(0, $data['quantity'] - 1))->map(function (int $offset) use ($system, $component, $nextSlot) {
             $slot = $nextSlot + $offset;
 
             return $system->panels()->create([

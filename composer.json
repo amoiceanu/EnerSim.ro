@@ -49,7 +49,7 @@
             "@php artisan test"
         ],
         "test:coverage": [
-            "set XDEBUG_MODE=coverage&& @php artisan test --coverage --min=90",
+            "set XDEBUG_MODE=coverage&& @php artisan test --coverage --min=80",
             "set XDEBUG_MODE=coverage&& @php artisan test --coverage-html=coverage-html --coverage-clover=coverage/clover.xml"
         ],
         "post-autoload-dump": [

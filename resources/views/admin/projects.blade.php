@@ -34,7 +34,7 @@
                             <td>{{ $project->created_at->format('d.m.Y H:i') }}</td>
                             <td>
                                 <div class="admin-project-actions">
-                                    <a href="{{ route('projects.show', $project) }}" aria-label="Deschide proiectul {{ $project->name }}">Deschide →</a>
+                                    <a href="{{ route('projects.show', $project) }}" target="_blank" rel="noopener noreferrer" aria-label="Deschide proiectul {{ $project->name }} într-un tab nou">Deschide ↗</a>
                                     <form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('Ștergi definitiv proiectul „{{ addslashes($project->name) }}”? Această acțiune nu poate fi anulată.');">
                                         @csrf
                                         @method('DELETE')

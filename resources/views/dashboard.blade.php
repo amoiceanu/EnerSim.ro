@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>EnerSim · Simulator fotovoltaic</title><meta name="description" content="Simulator interactiv de management energetic fotovoltaic"><link rel="preconnect" href="https://fonts.bunny.net"><link href="https://fonts.bunny.net/css?family=manrope:400,500,600,700,800" rel="stylesheet">@vite(['resources/css/app.css','resources/css/app.less','resources/js/app.js'])</head>
+<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>EnerSim · Simulator fotovoltaic</title><meta name="description" content="Simulator interactiv de management energetic fotovoltaic"><link rel="preconnect" href="https://fonts.bunny.net"><link href="https://fonts.bunny.net/css?family=manrope:400,500,600,700,800" rel="stylesheet">@vite(['resources/css/app.css','resources/css/app.scss','resources/js/app.js'])</head>
 <body class="font-sans antialiased" x-data="energySimulator({{ Illuminate\Support\Js::from($simulatorData) }})">
 <div class="min-h-screen lg:flex">
 <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-800/80 bg-[#080d17] lg:flex lg:flex-col">

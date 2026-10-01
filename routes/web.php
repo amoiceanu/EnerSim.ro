@@ -18,6 +18,9 @@ Route::middleware('guest')->group(function (): void {
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
 Route::get('/admin', [AdminProjectController::class, 'index'])->middleware(['auth', 'admin'])->name('admin.dashboard');
 Route::get('/admin/projects', [AdminProjectController::class, 'index'])->middleware(['auth', 'admin'])->name('admin.projects.index');
+Route::get('/admin/catalog', [AdminProjectController::class, 'catalog'])->middleware(['auth', 'admin'])->name('admin.catalog');
+Route::post('/admin/catalog/import', [AdminProjectController::class, 'importCatalogCsv'])->middleware(['auth', 'admin'])->name('admin.catalog.import');
+Route::get('/admin/catalog/template/{tab}', [AdminProjectController::class, 'downloadCatalogTemplate'])->middleware(['auth', 'admin'])->name('admin.catalog.template');
 
 Route::resource('projects', ProjectController::class)->only(['index', 'create', 'store', 'show']);
 Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->middleware(['auth', 'admin'])->name('projects.destroy');

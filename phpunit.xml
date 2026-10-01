@@ -14,11 +14,7 @@
     </testsuites>
     <source>
         <include>
-            <file>app/Services/Simulation/BatteryService.php</file>
-            <file>app/Services/Simulation/GridService.php</file>
-            <file>app/Services/Simulation/InverterService.php</file>
-            <file>app/Services/Simulation/SimulationEngine.php</file>
-            <file>app/Services/Simulation/SolarProductionService.php</file>
+            <directory suffix=".php">app</directory>
         </include>
     </source>
     <php>

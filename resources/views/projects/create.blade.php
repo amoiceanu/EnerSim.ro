@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Proiect nou · EnerSim</title>@vite(['resources/css/app.css','resources/css/app.less','resources/js/app.js'])</head>
+<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Proiect nou · EnerSim</title>@vite(['resources/css/app.css','resources/css/app.scss','resources/js/app.js'])</head>
 <body class="project-wizard min-h-screen font-sans antialiased" x-data="projectWizard()">
 <x-ad-placeholders />
 <div class="mx-auto max-w-5xl px-5 py-8 sm:px-8">
