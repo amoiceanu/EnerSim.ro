@@ -1,4 +1,11 @@
 /* Projects workspace tokens: reusable on future portfolio pages. */
+.svg-blend-layer--hard-light {
+  mix-blend-mode: hard-light;
+}
+.svg-blend-layer--plus-darker {
+  mix-blend-mode: plus-darker;
+}
+
 .projects-page {
   --page-bg: #f6f8fc;
   --surface: #ffffff;
@@ -75,24 +82,34 @@
   font-size: 9px;
   letter-spacing: 0.08em;
 }
-.project-chart-row i {
+.project-chart-row .project-chart-progress {
+  appearance: none;
   display: block;
+  width: 100%;
   height: 11px;
   overflow: hidden;
   border-radius: 99px;
   background: #e9edf3;
 }
-.project-chart-row em {
-  display: block;
-  height: 100%;
-  min-width: 5px;
+.project-chart-row .project-chart-progress::-webkit-progress-bar {
+  border-radius: inherit;
+  background: #e9edf3;
+}
+.project-chart-row.is-solar .project-chart-progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #55c78c, #168654);
   border-radius: inherit;
 }
-.project-chart-row.is-solar em {
+.project-chart-row.is-solar .project-chart-progress::-moz-progress-bar {
   background: linear-gradient(90deg, #55c78c, #168654);
+  border-radius: inherit;
 }
-.project-chart-row.is-consumption em {
+.project-chart-row.is-consumption .project-chart-progress::-webkit-progress-value {
   background: linear-gradient(90deg, #f27a86, #c93c4e);
+  border-radius: inherit;
+}
+.project-chart-row.is-consumption .project-chart-progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #f27a86, #c93c4e);
+  border-radius: inherit;
 }
 .project-chart-row strong {
   color: #34435d;
@@ -405,14 +422,16 @@
 .projects-page .project-chart-row {
   margin-top: 14px;
 }
-.projects-page .project-chart-row i {
+.projects-page .project-chart-row .project-chart-progress {
   height: 8px;
   background: #e8edf4;
 }
-.projects-page .project-chart-row.is-solar em {
+.projects-page .project-chart-row.is-solar .project-chart-progress::-webkit-progress-value,
+.projects-page .project-chart-row.is-solar .project-chart-progress::-moz-progress-bar {
   background: var(--solar);
 }
-.projects-page .project-chart-row.is-consumption em {
+.projects-page .project-chart-row.is-consumption .project-chart-progress::-webkit-progress-value,
+.projects-page .project-chart-row.is-consumption .project-chart-progress::-moz-progress-bar {
   background: var(--consumption);
 }
 .projects-page .project-chart-row.is-solar > span {
@@ -5405,6 +5424,9 @@
 .about-page .about-ad-slot .adsbygoogle {
   width: 160px;
   min-height: 600px;
+}
+.adsbygoogle-slot {
+  display: block;
 }
 /* Avoid duplicate global placeholders only while the dedicated About rails are active. */
 @media (min-width: 1700px) {

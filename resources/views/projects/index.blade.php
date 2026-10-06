@@ -71,8 +71,8 @@
 
                         <section class="project-energy-chart" aria-label="Comparație producție solară și consum">
                             <div class="project-chart-legend"><span class="is-solar"><i></i> Producție solară</span><span class="is-consumption"><i></i> Consum</span></div>
-                            <div class="project-chart-row is-solar"><span aria-hidden="true">☀</span><div><b>SOLAR</b><i><em style="width: {{ ($solarPower / $chartMaximum) * 100 }}%"></em></i></div><strong>{{ number_format($solarPower / 1000, 2) }} kWp</strong></div>
-                            <div class="project-chart-row is-consumption"><span aria-hidden="true">ϟ</span><div><b>CONSUM</b><i><em style="width: {{ ($consumptionPower / $chartMaximum) * 100 }}%"></em></i></div><strong>{{ number_format($consumptionPower / 1000, 2) }} kW</strong></div>
+                            <div class="project-chart-row is-solar"><span aria-hidden="true">☀</span><div><b>SOLAR</b><progress class="project-chart-progress" aria-label="Producție solară" value="{{ ($solarPower / $chartMaximum) * 100 }}" max="100"></progress></div><strong>{{ number_format($solarPower / 1000, 2) }} kWp</strong></div>
+                            <div class="project-chart-row is-consumption"><span aria-hidden="true">ϟ</span><div><b>CONSUM</b><progress class="project-chart-progress" aria-label="Consum" value="{{ ($consumptionPower / $chartMaximum) * 100 }}" max="100"></progress></div><strong>{{ number_format($consumptionPower / 1000, 2) }} kW</strong></div>
                         </section>
 
                         <div class="project-card-footer">

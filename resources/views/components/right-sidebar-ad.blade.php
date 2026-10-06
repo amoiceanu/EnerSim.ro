@@ -6,8 +6,7 @@
 <aside class="about-ad-slot about-ad-slot-right" aria-label="Publicitate">
     @if(filled($adClient) && filled($adSlot))
         {{-- AdSense responsive settings: data-ad-format="auto" and data-full-width-responsive="true". --}}
-        <ins class="adsbygoogle"
-             style="display:block"
+        <ins class="adsbygoogle adsbygoogle-slot"
              data-ad-client="{{ $adClient }}"
              data-ad-slot="{{ $adSlot }}"
              data-ad-format="auto"
