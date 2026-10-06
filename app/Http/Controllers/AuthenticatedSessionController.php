@@ -16,7 +16,10 @@ class AuthenticatedSessionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
+        $input = $request->validate(['email' => ['required', 'string', 'max:255'], 'password' => ['required', 'string']]);
+        $identifier = trim($input['email']);
+        $field = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+        $credentials = [$field => $identifier, 'password' => $input['password']];
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['email' => 'Datele de autentificare nu sunt valide.'])->onlyInput('email');
