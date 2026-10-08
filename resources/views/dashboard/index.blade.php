@@ -1,6 +1,6 @@
 @extends('layouts.app', ['title' => 'EnerSim · Simulator Panouri Solare'])
 @section('content')
-<div x-data="energySimulator({{ Illuminate\Support\Js::from($simulatorData) }})" :class="nightMode && 'night-mode'" class="solar-app min-h-screen">
+<div x-data="energySimulator({{ Illuminate\Support\Js::from($simulatorData) }})" :class="nightMode && 'night-mode'" class="solar-app project-ad-layout min-h-screen">
     <x-sidebar :project="$project" :system="$system" :assessment="$assessment" />
     <x-floating-pro-tip />
     <div class="min-w-0 lg:ml-[270px]">

@@ -3658,6 +3658,62 @@
 .ad-placeholder-right {
   right: 14px;
 }
+/* Project simulator pages have a fixed 268px sidebar. Keep both desktop ad
+   rails outside the readable content area instead of underneath the sidebar. */
+@media (min-width: 1281px) {
+  .ad-placeholders-project .ad-placeholder-left,
+  .ad-placeholders-project .ad-placeholder-right {
+    position: fixed;
+    top: 172px;
+    z-index: 60;
+    display: flex;
+    visibility: visible;
+    opacity: 1;
+    width: 104px;
+    min-height: 420px;
+  }
+  .ad-placeholders-project .ad-placeholder-left {
+    left: 280px;
+  }
+  .ad-placeholders-project .ad-placeholder-right {
+    right: 10px;
+  }
+  .project-ad-layout .solar-main {
+    padding-right: clamp(120px, 9.4vw, 180px);
+    padding-left: clamp(120px, 9.4vw, 180px);
+  }
+}
+@media (min-width: 1600px) {
+  .ad-placeholders-project .ad-placeholder-left,
+  .ad-placeholders-project .ad-placeholder-right {
+    width: 140px;
+    min-height: 600px;
+  }
+  .ad-placeholders-project .ad-placeholder-left {
+    left: 280px;
+  }
+  .ad-placeholders-project .ad-placeholder-right {
+    right: 14px;
+  }
+}
+@media (min-width: 1151px) and (max-width: 1280px) {
+  .ad-placeholders-project {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    width: min(1080px, calc(100% - 32px));
+    margin: 12px auto 0;
+  }
+  .ad-placeholders-project .ad-placeholder-top,
+  .ad-placeholders-project .ad-placeholder-left,
+  .ad-placeholders-project .ad-placeholder-right {
+    position: static;
+    display: flex;
+    width: auto;
+    min-height: 72px;
+    margin: 0;
+  }
+}
 @media (min-width: 1151px) and (max-width: 1500px) {
   .ad-placeholder-left,
   .ad-placeholder-right {
