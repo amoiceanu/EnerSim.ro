@@ -58,6 +58,7 @@ jobs:
       - name: Run full test suite and enforce coverage
         run: php artisan test --coverage --min=80
         env:
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           XDEBUG_MODE: coverage
 
       - name: Check production migrations and Laravel caches
