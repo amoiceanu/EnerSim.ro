@@ -2205,6 +2205,9 @@
   background: #fff;
   box-shadow: 0 4px 14px rgba(22, 37, 68, 0.04);
 }
+.energy-path.path-grid.is-reversed {
+  transform: scaleX(-1);
+}
 .dashboard-metric {
   display: flex;
   min-height: 138px;

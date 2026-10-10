@@ -16,7 +16,7 @@
             <div class="scene-grid"><span>⌁</span><b>Rețea</b><small x-text="gridAvailable ? gridLabel : 'Offline'"></small></div>
             <div class="energy-path path-solar" :class="result.solar_w > 0 && 'is-flowing'"></div>
             <div class="energy-path path-load" :class="result.served_load_w > 0 && 'is-flowing'"></div>
-            <div class="energy-path path-grid" :class="Math.abs(result.grid_w) > 0 && 'is-flowing'" :style="result.grid_w > 0 ? 'transform:scaleX(-1)' : ''"></div>
+            <div class="energy-path path-grid" :class="{'is-flowing': Math.abs(result.grid_w) > 0, 'is-reversed': result.grid_w > 0}"></div>
         </div>
         <div class="bottom-flow-cards">
             <div class="mini-energy-card"><span class="mini-icon bg-emerald-50 text-emerald-600">↗</span><div><small>Excedent</small><b class="text-emerald-600" x-text="formatW(gridExport)"></b><span>Trimis în rețea</span></div></div>
